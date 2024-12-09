@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Configuration
 @EnableJpaRepositories("com.sonnguyen.storageservice.repository")
-@EntityScan("com.sonnguyen.iamservice2.model")
+@EntityScan("com.sonnguyen.storageservice.model")
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class DatabaseConfig {
     @Bean

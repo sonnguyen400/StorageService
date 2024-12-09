@@ -13,6 +13,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-  data:
-    redis:
-      port: 8086
+storage:
+  upload_path: C:\Users\241102\IdeaProjects\StorageService\src\main\resources
+  download-base-url: http://localhost:${server.port}/api/v1/file
+server:
+  port: 8086

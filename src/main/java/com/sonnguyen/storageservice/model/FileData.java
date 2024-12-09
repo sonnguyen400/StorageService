@@ -2,17 +2,15 @@ package com.sonnguyen.storageservice.model;
 
 import com.sonnguyen.storageservice.constant.FileAccessType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class File extends AbstractAuditEntity{
+public class FileData extends AbstractAuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
