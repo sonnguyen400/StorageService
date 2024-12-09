@@ -18,3 +18,4 @@ storage:
   download-base-url: http://localhost:${server.port}/api/v1/file
 server:
   port: 8086
+debug: true

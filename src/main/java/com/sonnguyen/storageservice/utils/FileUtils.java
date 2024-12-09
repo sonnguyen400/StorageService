@@ -1,13 +1,10 @@
 package com.sonnguyen.storageservice.utils;
 
 import com.sonnguyen.storageservice.exception.FileStoreException;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Path;
 import java.util.UUID;
 
 public class FileUtils {
@@ -36,4 +33,8 @@ public class FileUtils {
         }
     }
 
+    public static File readFile(String relativePath){
+        String directoryPath=System.getProperty("user.dir")+relativePath;
+        return new File(directoryPath);
+    }
 }
