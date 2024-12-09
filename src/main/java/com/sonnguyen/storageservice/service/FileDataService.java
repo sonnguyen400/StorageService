@@ -7,18 +7,18 @@ import com.sonnguyen.storageservice.utils.FileUtils;
 import com.sonnguyen.storageservice.viewmodel.FileDataListVm;
 import com.sonnguyen.storageservice.viewmodel.FileInfoPostVm;
 import jakarta.servlet.http.HttpServletResponse;
+import net.coobird.thumbnailator.Thumbnails;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.List;
 
 @Service
@@ -51,15 +51,28 @@ public class FileDataService {
                 .path(filePath)
                 .build();
     }
-    public ResponseEntity<?> downloadFileById(Long fileId, HttpServletResponse response){
+    public void setDownloadHeader(String fileName,HttpServletResponse response){
+        String mimeType = URLConnection.guessContentTypeFromName(fileName);
+        String contentDisposition = String.format("attachment; filename=%s",fileName);
+        response.setHeader(HttpHeaders.CONTENT_TYPE,mimeType);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,contentDisposition);
+    }
+    public void downloadFileById(Long fileId, HttpServletResponse response){
         FileData fileData=findById(fileId);
         File file=FileUtils.readFile(fileData.getPath());
         try(FileInputStream fileInputStream=new FileInputStream(file)) {
-            InputStreamResource resource = new InputStreamResource(fileInputStream);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileData.getName().replace(" ", "_"))
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(resource.getContentAsByteArray());
+            setDownloadHeader(fileData.getName(),response);
+            IOUtils.copy(fileInputStream,response.getOutputStream());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void downloadThumbnailImage(Long fileId,Integer width,Integer height,HttpServletResponse response){
+        FileData fileData=findById(fileId);
+        File file= FileUtils.readFile(fileData.getPath());
+        try {
+            setDownloadHeader(fileData.getName(),response);
+            Thumbnails.of(file).size(width,height).toOutputStream(response.getOutputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

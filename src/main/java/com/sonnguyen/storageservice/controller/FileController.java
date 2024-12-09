@@ -25,8 +25,15 @@ public class FileController {
         return fileDataService.uploadAll(files,fileInfoPostVm);
     }
     @GetMapping("/{id}/download")
-    public ResponseEntity<?> downloadFileById(@PathVariable(name = "id") Long fileId, HttpServletResponse response){
-        return fileDataService.downloadFileById(fileId,response);
+    public void downloadFileById(@PathVariable(name = "id") Long fileId, HttpServletResponse response){
+         fileDataService.downloadFileById(fileId,response);
+    }
+    @GetMapping("/{id}/download/thumnail")
+    public void downloadThumbnail(@PathVariable Long id,
+                                  @RequestParam(defaultValue = "500") Integer width,
+                                  @RequestParam(defaultValue = "500") Integer height,
+                                  HttpServletResponse httpServletResponse){
+       fileDataService.downloadThumbnailImage(id,width,height,httpServletResponse);
     }
 
 }
