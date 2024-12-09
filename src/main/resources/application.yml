@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: StorageService
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/realms/iam_service/protocol/openid-connect/certs
+  datasource:
+    url: jdbc:postgresql://localhost:5432/StorageService
+    username: postgres
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+  data:
+    redis:
+      port: 8086
