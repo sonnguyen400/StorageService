@@ -1,33 +1,39 @@
 package com.sonnguyen.storageservice.utils;
 
 import com.sonnguyen.storageservice.exception.FileStoreException;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Path;
 import java.util.UUID;
 
 public class FileUtils {
+    public static String extractExtensionFromName(String fileName) {
+        if (fileName != null && fileName.contains(".")) {
+            return fileName.substring(fileName.lastIndexOf("."));
+        }
+        return "";
+    }
     public static String storeFile(MultipartFile file,String dir) {
-        File fileDir=new File(dir);
-        if (!fileDir.exists()) {
-            fileDir.mkdirs();
+        String directoryPath=System.getProperty("user.dir")+dir;
+        File directoryDir=new File(directoryPath);
+        if (!directoryDir.exists()) {
+            directoryDir.mkdirs();
         }
         String originalFilename = file.getOriginalFilename();
-        String extension = ""; // File extension (e.g., .jpg, .png)
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-
+        String extension = extractExtensionFromName(originalFilename);
         String newFilename = UUID.randomUUID() + extension; // Unique filename with extension
-        String filePath = dir + newFilename;
 
-        File destinationFile = new File(filePath);
         try {
-            file.transferTo(destinationFile);
-            return filePath;
+            File des=new File(directoryPath+newFilename);
+            file.transferTo(des);
+            return dir+newFilename;
         } catch (IOException e) {
             throw new FileStoreException(e.getMessage());
         }
     }
+
 }

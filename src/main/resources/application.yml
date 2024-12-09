@@ -14,7 +14,7 @@ spring:
     hibernate:
       ddl-auto: update
 storage:
-  upload_path: C:\Users\241102\IdeaProjects\StorageService\src\main\resources
+  upload_path: \file\
   download-base-url: http://localhost:${server.port}/api/v1/file
 server:
   port: 8086
