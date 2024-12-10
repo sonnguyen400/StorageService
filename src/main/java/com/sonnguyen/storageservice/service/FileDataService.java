@@ -2,6 +2,7 @@ package com.sonnguyen.storageservice.service;
 
 import com.sonnguyen.storageservice.constant.FileAccessType;
 import com.sonnguyen.storageservice.constant.FileType;
+import com.sonnguyen.storageservice.exception.InvalidArgumentException;
 import com.sonnguyen.storageservice.exception.ResourceNotFoundException;
 import com.sonnguyen.storageservice.model.FileData;
 import com.sonnguyen.storageservice.repository.FileDataRepository;
@@ -31,6 +32,7 @@ import java.util.List;
 
 @Service
 public class FileDataService {
+    private static List<String> validFileExtension= List.of(".png",".jpg",".jpeg","doc","docx",".pdf");
     @Autowired
     FileDataRepository fileDataRepository;
     @Autowired
@@ -77,6 +79,7 @@ public class FileDataService {
                 .build();
     }
     public List<FileDataListVm> uploadAll(List<MultipartFile> files, String owner, FileAccessType accessType) {
+        checkValidUploadedFile(files);
         List<FileData> fileDataList =files.stream().map((file_)-> createFileAndSaveToDisk(file_,owner,accessType)).toList();
         return fileDataRepository.saveAll(fileDataList)
                 .stream()
@@ -98,6 +101,14 @@ public class FileDataService {
                 .build();
     }
 
+    public void checkValidUploadedFile(List<MultipartFile> files){
+        List<String> fileExtensions=files.stream().map((file_)->FileUtils.extractExtensionFromName(file_.getOriginalFilename())).toList();
+        for(String extension_:fileExtensions){
+            if(!validFileExtension.contains(extension_)){
+                throw new InvalidArgumentException("Invalid file type");
+            }
+        }
+    }
     public void downloadFileById(Long fileId, HttpServletResponse response){
         FileData fileData=findById(fileId);
         File file=FileUtils.readFile(fileData.getPath());

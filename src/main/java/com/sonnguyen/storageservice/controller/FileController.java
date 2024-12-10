@@ -50,17 +50,17 @@ public class FileController {
     public List<FileDataListVm> uploadAllFile(@RequestPart(name = "file") List<MultipartFile> files,@RequestPart String owner){
         return fileDataService.uploadAll(files,owner, FileAccessType.PRIVATE);
     }
-    @GetMapping("/private/file/{id}/download")
+    @GetMapping("/file/{id}/download")
     public void downloadFileById(@PathVariable(name = "id") Long fileId, HttpServletResponse response){
          fileDataService.downloadFileById(fileId,response);
     }
-    @GetMapping("/private/file/{id}/download/thumbnail")
+    @GetMapping("/file/{id}/download/thumbnail")
     public void downloadThumbnail(@PathVariable Long id,
                                   ThumbnailParamsVm thumbnailParamsVm,
                                   HttpServletResponse httpServletResponse){
        fileDataService.downloadThumbnailImage(id,thumbnailParamsVm,httpServletResponse);
     }
-    @PostMapping("/private/file/{id}/delete")
+    @PostMapping("/file/{id}/delete")
     public void deleteById(@PathVariable Long id){
         fileDataService.deleteById(id);
     }
@@ -74,20 +74,6 @@ public class FileController {
     @PostMapping("/public/file/upload")
     public List<FileDataListVm> uploadAllPublicFile(@RequestPart(name = "file") List<MultipartFile> files,String owner){
         return fileDataService.uploadAll(files,owner,FileAccessType.PUBLIC);
-    }
-    @GetMapping("/public/file/{id}/download")
-    public void downloadPublicFileById(@PathVariable(name = "id") Long fileId, HttpServletResponse response){
-        fileDataService.downloadFileById(fileId,response);
-    }
-    @GetMapping("/public/file/{id}/download/thumbnail")
-    public void downloadPublicThumbnail(@PathVariable Long id,
-                                  ThumbnailParamsVm thumbnailParamsVm,
-                                  HttpServletResponse httpServletResponse){
-        fileDataService.downloadThumbnailImage(id,thumbnailParamsVm,httpServletResponse);
-    }
-    @PostMapping("/public/file/{id}/delete")
-    public void deletePublicById(@PathVariable Long id){
-        fileDataService.deleteById(id);
     }
     private List<FileDataSpecification> parseRequestToSpecification(HttpServletRequest request) {
         List<FileDataSpecification> fileDataSpecifications = new ArrayList<>();

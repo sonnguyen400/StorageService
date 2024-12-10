@@ -26,7 +26,8 @@ public class FileUtils {
     }
 
     public String storeFile(MultipartFile file) {
-        String directoryPath=String.format("%s/%s/%s",System.getProperty("user.dir"),uploadPath,buildTimePath(Instant.now()));
+        String relativePath=String.format("%s/%s",uploadPath,buildTimePath(Instant.now()));
+        String directoryPath=String.format("%s/%s",System.getProperty("user.dir"),relativePath);
         File directoryDir=new File(directoryPath);
         if (!directoryDir.exists()) {
             directoryDir.mkdirs();
@@ -38,14 +39,14 @@ public class FileUtils {
         try {
             File des=new File(directoryPath+"/"+newFilename);
             file.transferTo(des);
-            return String.format("%s/%s",uploadPath,newFilename); // Relative path to file
+            return String.format("%s/%s",relativePath,newFilename); // Relative path to file
         } catch (IOException e) {
             throw new FileStoreException(e.getMessage());
         }
     }
 
     public static File readFile(String relativePath){
-        String path=System.getProperty("user.dir")+relativePath;
+        String path=System.getProperty("user.dir")+"\\"+relativePath;
         return new File(path);
     }
     public static void deleteFile(String relativePath){
