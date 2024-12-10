@@ -1,19 +1,24 @@
 package com.sonnguyen.storageservice.service;
 
+import com.sonnguyen.storageservice.constant.FileAccessType;
 import com.sonnguyen.storageservice.constant.FileType;
 import com.sonnguyen.storageservice.exception.ResourceNotFoundException;
 import com.sonnguyen.storageservice.model.FileData;
 import com.sonnguyen.storageservice.repository.FileDataRepository;
+import com.sonnguyen.storageservice.specification.DynamicSearch;
+import com.sonnguyen.storageservice.specification.FileDataSpecification;
 import com.sonnguyen.storageservice.utils.FileUtils;
 import com.sonnguyen.storageservice.utils.ImageUtils;
 import com.sonnguyen.storageservice.viewmodel.FileDataListVm;
 import com.sonnguyen.storageservice.viewmodel.FileDetailsGetVm;
-import com.sonnguyen.storageservice.viewmodel.FileInfoPostVm;
 import com.sonnguyen.storageservice.viewmodel.ThumbnailParamsVm;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +39,16 @@ public class FileDataService {
     private String downloadBaseUrl;
     public FileData findById(Long id){
         return fileDataRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("File not found"));
+    }
+    public Page<FileData> findAll( List<FileDataSpecification> specifications,Pageable pageable){
+        if (!specifications.isEmpty()) {
+            Specification<FileData> specification = specifications.getFirst();
+            for(int i=1;i<specifications.size();i++){
+                specification=specification.and(specifications.get(i));
+            }
+            return fileDataRepository.findAll(specification, pageable);
+        }
+        return fileDataRepository.findAll(pageable);
     }
     public void deleteById(Long id){
         FileData fileData=findById(id);
@@ -61,8 +76,8 @@ public class FileDataService {
                 .accessType(fileData.getAccessType())
                 .build();
     }
-    public List<FileDataListVm> uploadAll(List<MultipartFile> files, FileInfoPostVm fileInfoPortVm) {
-        List<FileData> fileDataList =files.stream().map((file_)-> createFileAndSaveToDisk(file_,fileInfoPortVm)).toList();
+    public List<FileDataListVm> uploadAll(List<MultipartFile> files, String owner, FileAccessType accessType) {
+        List<FileData> fileDataList =files.stream().map((file_)-> createFileAndSaveToDisk(file_,owner,accessType)).toList();
         return fileDataRepository.saveAll(fileDataList)
                 .stream()
                 .map((file_)-> {
@@ -71,11 +86,11 @@ public class FileDataService {
                 })
                 .toList();
     }
-    public FileData createFileAndSaveToDisk(MultipartFile file, FileInfoPostVm fileInfoPortVm) {
+    public FileData createFileAndSaveToDisk(MultipartFile file, String owner, FileAccessType accessType) {
         String filePath = fileUtils.storeFile(file);
         return FileData.builder()
-                .owner(fileInfoPortVm.owner())
-                .accessType(fileInfoPortVm.accessType())
+                .owner(owner)
+                .accessType(accessType)
                 .name(file.getOriginalFilename())
                 .path(filePath)
                 .contentType(file.getContentType())

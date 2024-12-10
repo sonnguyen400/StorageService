@@ -1,6 +1,9 @@
 package com.sonnguyen.storageservice.config;
 
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -25,5 +28,9 @@ public class DatabaseConfig {
             }
             return Optional.of(auth.getPrincipal().toString());
         };
+    }
+    @Bean
+    public HibernatePropertiesCustomizer hibernateCustomizer(StatementInspector statementInspector) {
+        return (properties) -> properties.put(AvailableSettings.STATEMENT_INSPECTOR, statementInspector);
     }
 }
