@@ -10,6 +10,7 @@ import com.sonnguyen.storageservice.specification.DynamicSearch;
 import com.sonnguyen.storageservice.specification.FileDataSpecification;
 import com.sonnguyen.storageservice.utils.FileUtils;
 import com.sonnguyen.storageservice.utils.ImageUtils;
+import com.sonnguyen.storageservice.viewmodel.FileDataListGetVm;
 import com.sonnguyen.storageservice.viewmodel.FileDataListVm;
 import com.sonnguyen.storageservice.viewmodel.FileDetailsGetVm;
 import com.sonnguyen.storageservice.viewmodel.ThumbnailParamsVm;
@@ -39,32 +40,34 @@ public class FileDataService {
     FileUtils fileUtils;
     @Value("${storage.download-base-url}")
     private String downloadBaseUrl;
-    public FileData findById(Long id){
-        return fileDataRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("File not found"));
+    public FileData findByIdAndAccessType(Long id,FileAccessType accessType) {
+        return fileDataRepository.findByIdAndAccessType(id,accessType).orElseThrow(()->new ResourceNotFoundException("File not found"));
     }
-    public Page<FileData> findAll( List<FileDataSpecification> specifications,Pageable pageable){
+    public Page<FileDataListGetVm> findAllPublicFile( List<FileDataSpecification> specifications,Pageable pageable){
+        Specification<FileData> specification = new FileDataSpecification(new DynamicSearch("accessType",FileAccessType.PUBLIC, DynamicSearch.Operator.EQUAL));
+        for(FileDataSpecification fileDataSpecification:specifications){
+            specification=specification.and(fileDataSpecification);
+        }
+        return fileDataRepository.findAll(specification, pageable).map(FileDataListGetVm::fromEntity);
+    }
+    public Page<FileDataListGetVm> findAll(List<FileDataSpecification> specifications, Pageable pageable){
         if (!specifications.isEmpty()) {
             Specification<FileData> specification = specifications.getFirst();
             for(int i=1;i<specifications.size();i++){
                 specification=specification.and(specifications.get(i));
             }
-            return fileDataRepository.findAll(specification, pageable);
+            return fileDataRepository.findAll(specification, pageable).map(FileDataListGetVm::fromEntity);
         }
-        return fileDataRepository.findAll(pageable);
+        return fileDataRepository.findAll(pageable).map(FileDataListGetVm::fromEntity);
     }
-    public void deleteById(Long id){
-        FileData fileData=findById(id);
+    public void deleteById(Long id,FileAccessType accessType) {
+        FileData fileData=findByIdAndAccessType(id,accessType);
         FileUtils.deleteFile(fileData.getPath());
         fileDataRepository.deleteById(id);
     }
-    public FileDetailsGetVm findFileDetailById(Long id){
-        FileData fileData=findById(id);
-        String downloadLink="";
-        if(fileData.getType()==FileType.IMAGE){
-            downloadLink=String.format("%s/%s/download/thumbnail",downloadBaseUrl,fileData.getId());
-        }else{
-            downloadLink=String.format("%s/%s/download",downloadBaseUrl,fileData.getId());
-        }
+    public FileDetailsGetVm findFileDetailById(Long id,FileAccessType accessType){
+        FileData fileData=findByIdAndAccessType(id,accessType);
+        String downloadLink=createDownloadUrl(fileData);
         return FileDetailsGetVm.builder()
                 .link(downloadLink)
                 .accessType(fileData.getAccessType())
@@ -84,10 +87,22 @@ public class FileDataService {
         return fileDataRepository.saveAll(fileDataList)
                 .stream()
                 .map((file_)-> {
-                    String downloadLink=downloadBaseUrl+"/"+file_.getId()+"/download";
+                    String downloadLink=createDownloadUrl(file_);
                     return new FileDataListVm(file_.getName(),downloadLink);
                 })
                 .toList();
+    }
+    public String createDownloadUrl(FileData fileData){
+        StringBuilder sb=new StringBuilder();
+        sb.append(downloadBaseUrl)
+                .append(fileData.getAccessType()==FileAccessType.PUBLIC?"/public":"/private")
+                .append("/file/")
+                .append(fileData.getId())
+                .append("/download");
+        if(fileData.getType()==FileType.IMAGE){
+            sb.append("/thumbnail");
+        }
+        return sb.toString();
     }
     public FileData createFileAndSaveToDisk(MultipartFile file, String owner, FileAccessType accessType) {
         String filePath = fileUtils.storeFile(file);
@@ -109,8 +124,8 @@ public class FileDataService {
             }
         }
     }
-    public void downloadFileById(Long fileId, HttpServletResponse response){
-        FileData fileData=findById(fileId);
+    public void downloadFileById(Long fileId,FileAccessType accessType, HttpServletResponse response){
+        FileData fileData=findByIdAndAccessType(fileId,accessType);
         File file=FileUtils.readFile(fileData.getPath());
         try(FileInputStream fileInputStream=new FileInputStream(file)) {
             setDownloadHeader(fileData.getName(),response);
@@ -119,8 +134,8 @@ public class FileDataService {
             throw new RuntimeException(e);
         }
     }
-    public void downloadThumbnailImage(Long fileId, ThumbnailParamsVm thumbnailParamsVm, HttpServletResponse response){
-        FileData fileData=findById(fileId);
+    public void downloadThumbnailImage(Long fileId,FileAccessType accessType, ThumbnailParamsVm thumbnailParamsVm, HttpServletResponse response){
+        FileData fileData=findByIdAndAccessType(fileId,accessType);
         File file= FileUtils.readFile(fileData.getPath());
         try {
             setDownloadHeader(fileData.getName(),response);

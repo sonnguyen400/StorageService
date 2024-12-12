@@ -20,7 +20,10 @@ spring:
 storage:
   upload_uri_pattern: yyyy-MMMM\\dd
   upload_path: file
-  download-base-url: http://localhost:${server.port}/api/v1/file
+  download-base-url: http://localhost:${server.port}/api/v1
 server:
   port: 8086
 debug: true
+logging:
+  level:
+    org.springframework.security: trace
