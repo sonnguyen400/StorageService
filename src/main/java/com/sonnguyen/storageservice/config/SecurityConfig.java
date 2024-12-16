@@ -22,7 +22,7 @@ public class SecurityConfig {
     public SecurityFilterChain configSecurityWithExternalIdp(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request -> {
             request
-                    .requestMatchers("/api/v1/public/*",
+                    .requestMatchers("/api/v1/public/**",
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
                             "/swagger-resources/**").permitAll()

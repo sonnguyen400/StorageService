@@ -6,7 +6,7 @@ import com.sonnguyen.storageservice.specification.DynamicSearch;
 import com.sonnguyen.storageservice.specification.FileDataSpecification;
 import com.sonnguyen.storageservice.utils.SearchUtils;
 import com.sonnguyen.storageservice.viewmodel.FileDataListGetVm;
-import com.sonnguyen.storageservice.viewmodel.FileDataListVm;
+import com.sonnguyen.storageservice.viewmodel.FileUploadedResponseVm;
 import com.sonnguyen.storageservice.viewmodel.FileDetailsGetVm;
 import com.sonnguyen.storageservice.viewmodel.ThumbnailParamsVm;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,7 +62,7 @@ public class PublicFileController {
         return fileDataService.findFileDetailById(id,FileAccessType.PUBLIC);
     }
     @PostMapping("/upload")
-    public List<FileDataListVm> uploadAllFile(@RequestPart(name = "file") List<MultipartFile> files,String owner){
+    public List<FileUploadedResponseVm> uploadAllFile(@RequestPart(name = "file") List<MultipartFile> files, String owner){
         return fileDataService.uploadAll(files,owner,FileAccessType.PUBLIC);
     }
     private List<FileDataSpecification> parseRequestToSpecification(HttpServletRequest request) {

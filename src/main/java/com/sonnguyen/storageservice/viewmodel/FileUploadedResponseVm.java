@@ -1,6 +1,6 @@
 package com.sonnguyen.storageservice.viewmodel;
 
-public record FileDataListVm(
+public record FileUploadedResponseVm(
         String name,
         String link
 ) {

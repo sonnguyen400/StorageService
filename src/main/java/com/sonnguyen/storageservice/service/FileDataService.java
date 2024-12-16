@@ -11,7 +11,7 @@ import com.sonnguyen.storageservice.specification.FileDataSpecification;
 import com.sonnguyen.storageservice.utils.FileUtils;
 import com.sonnguyen.storageservice.utils.ImageUtils;
 import com.sonnguyen.storageservice.viewmodel.FileDataListGetVm;
-import com.sonnguyen.storageservice.viewmodel.FileDataListVm;
+import com.sonnguyen.storageservice.viewmodel.FileUploadedResponseVm;
 import com.sonnguyen.storageservice.viewmodel.FileDetailsGetVm;
 import com.sonnguyen.storageservice.viewmodel.ThumbnailParamsVm;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +33,7 @@ import java.util.List;
 
 @Service
 public class FileDataService {
-    private static List<String> validFileExtension= List.of(".png",".jpg",".jpeg","doc","docx",".pdf");
+    private static List<String> validFileExtension= List.of(".png",".jpg",".jpeg","doc","docx",".pdf",".xls",".xlsx");
     @Autowired
     FileDataRepository fileDataRepository;
     @Autowired
@@ -81,14 +81,14 @@ public class FileDataService {
                 .accessType(fileData.getAccessType())
                 .build();
     }
-    public List<FileDataListVm> uploadAll(List<MultipartFile> files, String owner, FileAccessType accessType) {
+    public List<FileUploadedResponseVm> uploadAll(List<MultipartFile> files, String owner, FileAccessType accessType) {
         checkValidUploadedFile(files);
         List<FileData> fileDataList =files.stream().map((file_)-> createFileAndSaveToDisk(file_,owner,accessType)).toList();
         return fileDataRepository.saveAll(fileDataList)
                 .stream()
                 .map((file_)-> {
                     String downloadLink=createDownloadUrl(file_);
-                    return new FileDataListVm(file_.getName(),downloadLink);
+                    return new FileUploadedResponseVm(file_.getName(),downloadLink);
                 })
                 .toList();
     }
